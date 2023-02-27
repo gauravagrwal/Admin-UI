@@ -1,5 +1,5 @@
-import { Table, TextInput } from "flowbite-react";
-import { useState } from "react";
+import { Checkbox, Table, TextInput } from "flowbite-react";
+import { useRef, useState } from "react";
 
 import TableRowComponent from "./TableRowComponent";
 import TablePaginationComponent from "./TablePaginationComponent";
@@ -50,6 +50,9 @@ export default function TableComponent({ tData }) {
     let totalPages = Math.ceil(totalRows / rowsPerPage);
 
     function handlePagination(pageNumber) {
+        checkAllRows.current.checked = false;
+        checkedRows.map((row) => { return row.isChecked = false; });
+        setCheckedRows([]);
         setCurrentPage(pageNumber);
     }
 
@@ -66,6 +69,51 @@ export default function TableComponent({ tData }) {
     }
     //#endregion
 
+    //#region Select
+    const checkAllRows = useRef(false);
+    const [checkedRows, setCheckedRows] = useState([]);
+
+    function handleSelectAll(e) {
+        let isChecked = e.target.checked;
+        checkAllRows.current.checked = isChecked;
+        let currentlyCheckedRows;
+
+        if (searchTerm.length > 0 && searchResults.length > 0) {
+            currentlyCheckedRows = [];
+            for (let i = 0; i < searchResults.length; i++) {
+                currentlyCheckedRows.push(searchResults[i]);
+            }
+        }
+        else {
+            currentlyCheckedRows = [...checkedRows];
+            for (let i = rowsPerPage; i > 0; i--) {
+                if (indexOfLastRow - i < tData.length) {
+                    currentlyCheckedRows.push(tData[indexOfLastRow - i]);
+                }
+            }
+        }
+
+        currentlyCheckedRows.forEach((row) => { return row.isChecked = isChecked; });
+        console.log(currentlyCheckedRows);
+        setCheckedRows(currentlyCheckedRows);
+    }
+
+    function handleSelect(e, id) {
+        let currentlyCheckedRow = [...checkedRows];
+        tData.forEach((row) => {
+            if (row.id === id) {
+                row.isChecked = !row.isChecked;
+                if (row.isChecked)
+                    currentlyCheckedRow.push(row);
+                else
+                    currentlyCheckedRow = currentlyCheckedRow.filter((row) => { return row.id !== id; });
+            }
+        });
+        console.log(currentlyCheckedRow);
+        setCheckedRows(currentlyCheckedRow);
+    }
+    //#endregion
+
     return (
         <>
 
@@ -74,6 +122,9 @@ export default function TableComponent({ tData }) {
             <Table hoverable={true}>
 
                 <Table.Head>
+                    <Table.HeadCell>
+                        <Checkbox onClick={handleSelectAll} ref={checkAllRows} />
+                    </Table.HeadCell>
                     <Table.HeadCell>Name</Table.HeadCell>
                     <Table.HeadCell>Email</Table.HeadCell>
                     <Table.HeadCell>Role</Table.HeadCell>
@@ -83,14 +134,15 @@ export default function TableComponent({ tData }) {
                     ? (
                         <Table.Body>
                             <Table.Row>
-                                <Table.Cell colSpan={3}>No Records Found!</Table.Cell>
+                                <Table.Cell colSpan={4}>No Records Found!</Table.Cell>
                             </Table.Row>
                         </Table.Body>
                     )
                     : (
                         <Table.Body className="divide-y">
                             {currentRows.map((row) => (
-                                <TableRowComponent key={row.id} row={row} />
+                                <TableRowComponent key={row.id} row={row}
+                                    handleSelect={handleSelect} />
                             ))}
                         </Table.Body>
                     )

@@ -1,8 +1,11 @@
-import { Table } from "flowbite-react";
+import { Checkbox, Table } from "flowbite-react";
 
-export default function TableRowComponent({ row }) {
+export default function TableRowComponent({ row, handleSelect }) {
     return (
-        <Table.Row>
+        <Table.Row style={{ backgroundColor: row.isChecked ? "lightgray" : "" }}>
+            <Table.Cell>
+                <Checkbox onChange={(e) => handleSelect(e, row.id)} checked={row.isChecked} />
+            </Table.Cell>
             <Table.Cell>
                 {row.name}
             </Table.Cell>
