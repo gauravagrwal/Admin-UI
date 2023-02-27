@@ -22,6 +22,6 @@ export default function AdminUI() {
 	}, []);
 
 	return (
-		<TableComponent tData={data} />
+		<TableComponent tData={data} setTData={setData} />
 	);
 }

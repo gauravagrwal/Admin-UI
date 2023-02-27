@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import TableRowComponent from "./TableRowComponent";
 import TablePaginationComponent from "./TablePaginationComponent";
 
-export default function TableComponent({ tData }) {
+export default function TableComponent({ tData, setTData }) {
     //#region Search
     const [searchTerm, setSearchTerm] = useState("");
     const [searchResults, setSearchResults] = useState([]);
@@ -114,6 +114,20 @@ export default function TableComponent({ tData }) {
     }
     //#endregion
 
+    //#region Update
+    function handleUpdate(updateRow) {
+        const updatedRowData = tData.map((row) => {
+            if (row.id === updateRow.id) {
+                row.name = updateRow.name;
+                row.email = updateRow.email;
+                row.role = updateRow.role;
+            }
+            return row;
+        });
+        setTData(updatedRowData);
+    }
+    //#endregion
+
     return (
         <>
 
@@ -128,13 +142,14 @@ export default function TableComponent({ tData }) {
                     <Table.HeadCell>Name</Table.HeadCell>
                     <Table.HeadCell>Email</Table.HeadCell>
                     <Table.HeadCell>Role</Table.HeadCell>
+                    <Table.HeadCell>Actions</Table.HeadCell>
                 </Table.Head>
 
                 {currentRows.length === 0
                     ? (
                         <Table.Body>
                             <Table.Row>
-                                <Table.Cell colSpan={4}>No Records Found!</Table.Cell>
+                                <Table.Cell colSpan={5}>No Records Found!</Table.Cell>
                             </Table.Row>
                         </Table.Body>
                     )
@@ -142,7 +157,8 @@ export default function TableComponent({ tData }) {
                         <Table.Body className="divide-y">
                             {currentRows.map((row) => (
                                 <TableRowComponent key={row.id} row={row}
-                                    handleSelect={handleSelect} />
+                                    handleSelect={handleSelect}
+                                    handleUpdate={handleUpdate} />
                             ))}
                         </Table.Body>
                     )
