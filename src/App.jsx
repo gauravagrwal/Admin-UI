@@ -5,7 +5,7 @@ import AdminUI from "./AdminUI";
 export default function App() {
 	return (
 		<>
-			<main>
+			<main className="p-4">
 				<AdminUI />
 			</main>
 

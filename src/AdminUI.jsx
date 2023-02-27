@@ -1,6 +1,8 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 
+import TableComponent from "./components/TableComponent";
+
 export default function AdminUI() {
 	const [data, setData] = useState([]);
 
@@ -20,6 +22,6 @@ export default function AdminUI() {
 	}, []);
 
 	return (
-		<></>
+		<TableComponent tData={data} />
 	);
 }
