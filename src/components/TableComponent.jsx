@@ -1,4 +1,4 @@
-import { Checkbox, Table, TextInput } from "flowbite-react";
+import { Button, Checkbox, Table, TextInput } from "flowbite-react";
 import { useRef, useState } from "react";
 
 import TableRowComponent from "./TableRowComponent";
@@ -54,6 +54,7 @@ export default function TableComponent({ tData, setTData }) {
         checkedRows.map((row) => { return row.isChecked = false; });
         setCheckedRows([]);
         setCurrentPage(pageNumber);
+        setShowMultiDeleteButton(false);
     }
 
     function nextPage() {
@@ -96,12 +97,14 @@ export default function TableComponent({ tData, setTData }) {
         currentlyCheckedRows.forEach((row) => { return row.isChecked = isChecked; });
         console.log(currentlyCheckedRows);
         setCheckedRows(currentlyCheckedRows);
+        setShowMultiDeleteButton(isChecked);
     }
 
     function handleSelect(e, id) {
         let currentlyCheckedRow = [...checkedRows];
         tData.forEach((row) => {
             if (row.id === id) {
+                setShowMultiDeleteButton(e.target.checked);
                 row.isChecked = !row.isChecked;
                 if (row.isChecked)
                     currentlyCheckedRow.push(row);
@@ -128,10 +131,60 @@ export default function TableComponent({ tData, setTData }) {
     }
     //#endregion
 
+    //#region Delete
+    const [showMultiDeleteButton, setShowMultiDeleteButton] = useState(false);
+
+    function handleDelete(id) {
+        if (window.confirm("are you sure you want to delete this record?")) {
+            if (searchResults.length !== 0)
+                setSearchResults(searchResults.filter((result) => { return result.id !== id; }));
+
+            setTData(tData.filter((row) => { return row.id !== id; }));
+        }
+    }
+
+    function handleDeleteSelected() {
+        if (window.confirm("are you sure you want to delete all the selected records?")) {
+            if (searchResults.length > 0) {
+                const newData = searchResults.filter((row) => { return !checkedRows.includes(row); });
+                setTData(tData.filter((row) => { return !checkedRows.includes(row); }));
+
+                if (newData.length > 0)
+                    setSearchResults(newData);
+                else
+                    setSearchResults([]);
+
+                setShowMultiDeleteButton(false);
+                checkAllRows.current.checked = false;
+            }
+            else {
+                const newData = tData.filter((row) => { return !checkedRows.includes(row); });
+                setTData(newData);
+
+                let totalPages = Math.ceil(newData.length / rowsPerPage);
+                if (currentPage > totalPages - 1)
+                    handlePagination(totalPages);
+                else
+                    handlePagination(currentPage);
+
+                setShowMultiDeleteButton(false);
+                checkAllRows.current.checked = false;
+            }
+        }
+    }
+    //#endregion
+
     return (
         <>
 
-            <TextInput addon="🔍" placeholder="Search by name, email or role" value={searchTerm} onChange={handleSearch} />
+            <div className="flex">
+                <TextInput className="grow" addon="🔍" placeholder="Search by name, email or role" value={searchTerm} onChange={handleSearch} />
+                {
+                    showMultiDeleteButton === true
+                        ? (<Button color="failure" onClick={() => handleDeleteSelected()}>Delete Selected</Button>)
+                        : null
+                }
+            </div>
 
             <Table hoverable={true}>
 
@@ -158,7 +211,8 @@ export default function TableComponent({ tData, setTData }) {
                             {currentRows.map((row) => (
                                 <TableRowComponent key={row.id} row={row}
                                     handleSelect={handleSelect}
-                                    handleUpdate={handleUpdate} />
+                                    handleUpdate={handleUpdate}
+                                    handleDelete={handleDelete} />
                             ))}
                         </Table.Body>
                     )
