@@ -2,6 +2,7 @@ import { Table, TextInput } from "flowbite-react";
 import { useState } from "react";
 
 import TableRowComponent from "./TableRowComponent";
+import TablePaginationComponent from "./TablePaginationComponent";
 
 export default function TableComponent({ tData }) {
     //#region Search
@@ -9,6 +10,7 @@ export default function TableComponent({ tData }) {
     const [searchResults, setSearchResults] = useState([]);
 
     function handleSearch(e) {
+        setCurrentPage(1);
         setSearchTerm(e.target.value);
         if (searchTerm === "")
             setSearchResults(tData);
@@ -26,6 +28,44 @@ export default function TableComponent({ tData }) {
     }
     //#endregion
 
+    //#region Pagination
+    const rowsPerPage = 10;
+    const [currentPage, setCurrentPage] = useState(1);
+
+    let indexOfLastRow = currentPage * rowsPerPage;
+    let indexOfFirstRow = indexOfLastRow - rowsPerPage;
+
+    let currentRows = searchTerm.length > 0
+        ? searchResults.length > 0
+            ? searchResults.slice(indexOfFirstRow, indexOfLastRow)
+            : []
+        : tData.slice(indexOfFirstRow, indexOfLastRow);
+
+    let totalRows = searchTerm.length > 0
+        ? searchResults.length > 0
+            ? searchResults.length
+            : searchResults.length
+        : tData.length;
+
+    let totalPages = Math.ceil(totalRows / rowsPerPage);
+
+    function handlePagination(pageNumber) {
+        setCurrentPage(pageNumber);
+    }
+
+    function nextPage() {
+        if (currentPage !== totalPages) {
+            setCurrentPage(currentPage + 1);
+        }
+    }
+
+    function previousPage() {
+        if (currentPage !== 1) {
+            setCurrentPage(currentPage - 1);
+        }
+    }
+    //#endregion
+
     return (
         <>
 
@@ -39,7 +79,7 @@ export default function TableComponent({ tData }) {
                     <Table.HeadCell>Role</Table.HeadCell>
                 </Table.Head>
 
-                {searchResults.length === 0
+                {currentRows.length === 0
                     ? (
                         <Table.Body>
                             <Table.Row>
@@ -49,7 +89,7 @@ export default function TableComponent({ tData }) {
                     )
                     : (
                         <Table.Body className="divide-y">
-                            {searchResults.map((row) => (
+                            {currentRows.map((row) => (
                                 <TableRowComponent key={row.id} row={row} />
                             ))}
                         </Table.Body>
@@ -57,6 +97,17 @@ export default function TableComponent({ tData }) {
                 }
 
             </Table>
+
+            {
+                totalRows > 10
+                &&
+                (
+                    <TablePaginationComponent
+                        currentPage={currentPage}
+                        nextPage={nextPage} paginate={handlePagination} previousPage={previousPage}
+                        totalPages={totalPages} />
+                )
+            }
 
         </>
     );
